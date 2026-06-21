@@ -3,277 +3,264 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>PER TE ❤️</title>
-
-<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<title>Un filo per te</title>
 
 <style>
-* { box-sizing: border-box; }
-
-body {
-  margin: 0;
-  font-family: 'Press Start 2P', cursive;
-  background: linear-gradient(135deg, #120000, #2a0010);
-  color: white;
-  overflow: hidden;
+html,body{
+margin:0;
+padding:0;
+overflow:hidden;
+background:#050712;
+font-family: Georgia, serif;
+color:white;
 }
 
-body::before {
-  content: "";
-  position: fixed;
-  width: 100%;
-  height: 100%;
-  background: repeating-linear-gradient(
-    to bottom,
-    rgba(255,255,255,0.03),
-    rgba(255,255,255,0.03) 1px,
-    transparent 2px,
-    transparent 4px
-  );
-  pointer-events: none;
+canvas{
+display:block;
 }
 
-.screen {
-  display: none;
-  height: 100vh;
-  width: 100vw;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-  text-align: center;
-  padding: 20px;
+/* INTRO / UI */
+.screen{
+position:fixed;
+inset:0;
+display:flex;
+align-items:center;
+justify-content:center;
+flex-direction:column;
+text-align:center;
+background:radial-gradient(circle at center,#0b1430,#050712);
+z-index:10;
 }
 
-.active { display: flex; }
+.hidden{display:none;}
 
-h1 {
-  font-size: 14px;
-  text-shadow: 0 0 15px #ff4d6d;
-  line-height: 1.8;
+h1{font-size:22px; letter-spacing:2px;}
+p{opacity:0.7; max-width:80%;}
+
+button{
+margin-top:15px;
+padding:12px 18px;
+border:1px solid white;
+background:transparent;
+color:white;
+border-radius:8px;
+cursor:pointer;
 }
 
-p {
-  font-size: 10px;
-  color: #ffb3c6;
+/* TOUCH */
+#controls{
+position:fixed;
+bottom:15px;
+width:100%;
+display:flex;
+justify-content:space-between;
+padding:0 25px;
+z-index:5;
 }
 
-/* ICONE SICURE (INLINE SVG STYLE) */
-.icon {
-  width: 70px;
-  height: 70px;
-  margin: 10px;
-  filter: drop-shadow(0 0 6px #ff4d6d);
-  cursor: pointer;
-}
-
-/* MEMORY */
-.board {
-  display: grid;
-  grid-template-columns: repeat(3, 80px);
-  gap: 10px;
-  margin-top: 20px;
-}
-
-.card {
-  width: 80px;
-  height: 80px;
-  border: 2px solid #ff4d6d;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 30px;
-  background: black;
-  cursor: pointer;
-  user-select: none;
-}
-
-.popup {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: black;
-  border: 2px solid #ff4d6d;
-  padding: 20px;
-  display: none;
-  text-align: center;
-  z-index: 10;
-}
-
-.popup img {
-  max-width: 240px;
-  border: 2px solid white;
-  margin-top: 10px;
-}
-
-button {
-  font-family: 'Press Start 2P', cursive;
-  background: black;
-  border: 2px solid #ff4d6d;
-  color: white;
-  padding: 12px;
-  margin-top: 15px;
+.ctrl{
+width:60px;
+height:60px;
+border:1px solid white;
+border-radius:12px;
+display:flex;
+align-items:center;
+justify-content:center;
+opacity:0.4;
+user-select:none;
 }
 </style>
 </head>
 
 <body>
 
-<!-- 1 -->
-<div class="screen active" id="s1">
-  <h1>VUOI APRIRE IL REGALO?</h1>
-  <button onclick="next(2)">SI ❤️</button>
+<div class="screen" id="intro">
+<h1>Un filo del destino ti guida</h1>
+<p>Tre prove. Una sola verità nascosta.</p>
+<button onclick="start()">Inizia il viaggio</button>
 </div>
 
-<!-- 2 -->
-<div class="screen" id="s2">
-  <h1>TI PROMETTO CHE TI PIACERÀ 💕</h1>
-  <button onclick="next(3)">INIZIA 🎮</button>
+<div id="controls">
+<div class="ctrl" onpointerdown="keys.left=true" onpointerup="keys.left=false">◀</div>
+<div class="ctrl" onpointerdown="jump()">⤒</div>
+<div class="ctrl" onpointerdown="keys.right=true" onpointerup="keys.right=false">▶</div>
 </div>
 
-<!-- MEMORY -->
-<div class="screen" id="s3">
-  <h1>MEMORY 🎮</h1>
-  <p>Trova tutte le coppie 💕</p>
-  <div class="board" id="board"></div>
+<canvas id="game"></canvas>
+
+<!-- END -->
+<div class="screen hidden" id="end">
+<h1>Hai raggiunto la lanterna</h1>
+<p>Una stanza segreta si apre nel silenzio…</p>
+<button onclick="openRoom()">Entrare</button>
 </div>
 
-<!-- REGALO -->
-<div class="screen" id="s4">
-
-  <h1>QUESTI SONO PER TE 💝</h1>
-
-  <!-- MUSICA -->
-  <div onclick="music()">
-    <svg class="icon" viewBox="0 0 24 24" fill="white">
-      <path d="M12 3v10.55a4 4 0 1 0 2 3.45V7h4V3h-6z"/>
-    </svg>
-    <p>Canzone che mi ricorda di te 🎵</p>
-  </div>
-
-  <!-- FOTO -->
-  <div onclick="photo()">
-    <svg class="icon" viewBox="0 0 24 24" fill="white">
-      <path d="M9 2l1.5 2H20a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h3.5L9 2zm3 5a5 5 0 1 0 0 10 5 5 0 0 0 0-10z"/>
-    </svg>
-    <p>Foto Preferita 📸</p>
-  </div>
-
-  <!-- REGALO -->
-  <div onclick="gift()">
-    <svg class="icon" viewBox="0 0 24 24" fill="white">
-      <path d="M20 7h-3.17A3 3 0 0 0 12 3a3 3 0 0 0-4.83 4H4v4h16V7zm-9-2a1 1 0 1 1 2 0 1 1 0 0 1-2 0zm-7 6v9a2 2 0 0 0 2 2h5V11H4zm10 11h5a2 2 0 0 0 2-2v-9h-7v11z"/>
-    </svg>
-    <p>Il tuo regalo 🎁</p>
-  </div>
-
+<!-- ROOM -->
+<div class="screen hidden" id="room">
+<h1>Stanza segreta</h1>
+<button onclick="showPhoto()">📖 Diario del Viaggiatore</button>
+<button onclick="showGift()">🕸️ Sigillo Intrecciato</button>
 </div>
 
-<!-- POPUP -->
-<div class="popup" id="popup">
-  <div id="content"></div>
-  <button onclick="closeP()">CHIUDI</button>
+<!-- PHOTO -->
+<div class="screen hidden" id="photo">
+<h1>Per te ❤️</h1>
+<p>Ovunque vada, torno sempre da te.</p>
+<img src="foto_coppia.JPG" style="max-width:80%;border-radius:10px;">
+<br>
+<button onclick="back()">Chiudi</button>
+</div>
+
+<!-- GIFT -->
+<div class="screen hidden" id="gift">
+<h1>THREADS CONNECTED</h1>
+<p>…analisi completata…</p>
+<h2>🎾 LEZIONE DI TENNIS INSIEME</h2>
+<p>Le avventure più belle non si trovano. Si condividono.</p>
+<br>
+<button onclick="location.reload()">Rigioca</button>
 </div>
 
 <script>
 
-let flipped = [];
-let matched = 0;
+const c=document.getElementById("game");
+const ctx=c.getContext("2d");
 
-const emojis = ["💖","🎵","🎁","💖","🎵","🎁"];
+function resize(){
+c.width=innerWidth;
+c.height=innerHeight;
+}
+window.onresize=resize;
+resize();
 
-/* NAV */
-function next(n){
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById('s'+n).classList.add('active');
+/* PLAYER */
+let p={
+x:50,y:200,w:18,h:18,
+vx:0,vy:0,
+onGround:false
+};
 
-  if(n === 3){
-    setTimeout(startGame, 300);
-  }
+let keys={left:false,right:false};
+
+/* PLATFORM */
+let plat=[
+{x:0,y:320,w:220,h:20},
+{x:260,y:260,w:200,h:20},
+{x:520,y:210,w:200,h:20},
+{x:780,y:160,w:200,h:20}
+];
+
+let goal={x:900,y:110,w:25,h:25};
+
+function start(){
+document.getElementById("intro").classList.add("hidden");
+loop();
 }
 
-/* MEMORY */
-function startGame(){
-  const board = document.getElementById("board");
-  board.innerHTML = "";
-
-  matched = 0;
-  flipped = [];
-
-  let shuffled = [...emojis].sort(() => Math.random() - 0.5);
-
-  shuffled.forEach(e => {
-    let card = document.createElement("div");
-    card.className = "card";
-    card.textContent = "❓";
-    card.dataset.value = e;
-
-    card.onclick = () => flip(card);
-
-    board.appendChild(card);
-  });
+function jump(){
+if(p.onGround){
+p.vy=-11;
+p.onGround=false;
+}
 }
 
-function flip(card){
-  if(card.textContent !== "❓" || flipped.length === 2) return;
+document.addEventListener("keydown",e=>{
+if(e.key=="ArrowLeft")keys.left=true;
+if(e.key=="ArrowRight")keys.right=true;
+if(e.key==" ")jump();
+});
 
-  card.textContent = card.dataset.value;
-  flipped.push(card);
+document.addEventListener("keyup",e=>{
+if(e.key=="ArrowLeft")keys.left=false;
+if(e.key=="ArrowRight")keys.right=false;
+});
 
-  if(flipped.length === 2){
-    setTimeout(check, 500);
-  }
+/* UPDATE */
+function update(){
+
+if(keys.left)p.vx=-3.2;
+else if(keys.right)p.vx=3.2;
+else p.vx*=0.85;
+
+p.vy+=0.55;
+
+p.x+=p.vx;
+p.y+=p.vy;
+
+p.onGround=false;
+
+for(let b of plat){
+if(p.x<b.x+b.w && p.x+p.w>b.x &&
+p.y<b.y+b.h && p.y+p.h>b.y){
+p.y=b.y-p.h;
+p.vy=0;
+p.onGround=true;
+}
 }
 
-function check(){
-  if(flipped[0].dataset.value === flipped[1].dataset.value){
-    matched++;
-  } else {
-    flipped[0].textContent = "❓";
-    flipped[1].textContent = "❓";
-  }
-
-  flipped = [];
-
-  if(matched === 3){
-    setTimeout(() => next(4), 700);
-  }
+/* WIN */
+if(p.x>goal.x && p.x<goal.x+goal.w &&
+p.y>goal.y && p.y<goal.y+goal.h){
+win();
+}
 }
 
-/* MUSICA */
-function music(){
-  window.open("https://www.youtube.com/watch?v=tTX6sJeZcmI", "_blank");
+/* DRAW */
+function draw(){
+
+ctx.fillStyle="#050712";
+ctx.fillRect(0,0,c.width,c.height);
+
+/* particles */
+for(let i=0;i<35;i++){
+ctx.fillStyle="rgba(255,255,255,0.06)";
+ctx.fillRect(Math.random()*c.width,Math.random()*c.height,2,2);
 }
 
-/* FOTO */
-function photo(){
-  document.getElementById("content").innerHTML =
-    "<div>Foto Preferita 💕</div><img src='foto_coppia.JPG'>";
-  document.getElementById("popup").style.display = "block";
+/* platforms */
+ctx.fillStyle="#182042";
+for(let b of plat){
+ctx.fillRect(b.x,b.y,b.w,b.h);
 }
 
-/* REGALO */
-function gift(){
-  document.getElementById("content").innerHTML =
-    `
-    <div style="font-size:12px;margin-bottom:10px;">
-      REGALO PER TE:
-    </div>
+/* glow goal */
+ctx.fillStyle="#ffd36b";
+ctx.fillRect(goal.x,goal.y,goal.w,goal.h);
 
-    <div style="color:#ff4d6d;margin-bottom:10px;">
-      LEZIONE DI TENNIS 🎾
-    </div>
-
-    <img src="IMG_3842.jpeg">
-    `;
-
-  document.getElementById("popup").style.display = "block";
+/* player (Hornet-like red) */
+ctx.fillStyle="#ff4d6d";
+ctx.fillRect(p.x,p.y,p.w,p.h);
 }
 
-/* CLOSE */
-function closeP(){
-  document.getElementById("popup").style.display = "none";
+function loop(){
+update();
+draw();
+requestAnimationFrame(loop);
+}
+
+function win(){
+document.getElementById("end").classList.remove("hidden");
+}
+
+/* UI */
+function openRoom(){
+document.getElementById("end").classList.add("hidden");
+document.getElementById("room").classList.remove("hidden");
+}
+
+function showPhoto(){
+document.getElementById("room").classList.add("hidden");
+document.getElementById("photo").classList.remove("hidden");
+}
+
+function showGift(){
+document.getElementById("room").classList.add("hidden");
+document.getElementById("gift").classList.remove("hidden");
+}
+
+function back(){
+document.getElementById("photo").classList.add("hidden");
+document.getElementById("room").classList.remove("hidden");
 }
 
 </script>
